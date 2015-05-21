@@ -1,0 +1,52 @@
+{
+    "ace": {
+        "@guessTabSize": "true",
+        "@newLineMode": "unix",
+        "@tabSize": "4",
+        "@useSoftTabs": "true"
+    },
+    "build": {
+        "@builder": "auto",
+        "@path": "/.c9/builders",
+        "@saveall": true
+    },
+    "find.nak": {
+        "@searchLimit": 100
+    },
+    "general": {
+        "@stripws": false
+    },
+    "language": {
+        "@eslintrc": "true",
+        "@instanceHighlight": "true",
+        "@semi": "true",
+        "@undeclaredVars": "true",
+        "@unusedFunctionArgs": "false",
+        "@warnLevel": "info"
+    },
+    "run": {
+        "@path": "/.c9/runners",
+        "configs": {
+            "@inited": "true",
+            "json()": {
+                "Main server": {
+                    "command": "server.js",
+                    "debug": true,
+                    "env": {
+                        "GOOGLE_PLACES_API_KEY": "\"AIzaSyC1MG4VO1wvHFuTAAgXAyfqF3iFpnqcDvU\"",
+                        "GOOGLE_PLACES_API_KEY2": "'AIzaSyCE3xJf0O33gxHFzGKeMjGjkZncQUp288E'",
+                        "GOOGLE_PLACES_OUTPUT_FORMAT": "\"json\"",
+                        "SLAVE_PASSWORD": "'dickspenisdicks'"
+                    },
+                    "name": "Main server",
+                    "runner": "Node.js (default)"
+                }
+            }
+        }
+    },
+    "share": {
+        "@app": false,
+        "@preview": false,
+        "@useOwnerSettings": false
+    }
+}

@@ -1,0 +1,421 @@
+<html ng-app>
+<head>
+      <link rel="stylesheet" type="text/css" href="landing.css">
+</head>
+
+<!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places"></script> -->
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
+
+
+<body>
+<!-- HTML for SEARCH BAR pls fix-->
+    <div id="tfheader">
+      <img src="img/AbbUnderline.png" alt="Yay Terrorism" style="max-width: 25%">
+	    <form id="tfnewsearch" method="get" action="landing.html?">
+	            <input type="text" class="tftextinput" name="q" maxlength="120" id='landingfield' >
+	            <input type="submit" value="crash" class="tfbutton" id="sendbutton">
+	    </form>
+	
+   
+    </div>
+
+<div id="mapItems">
+ <div id=menubars>
+        <select id=planes onchange="changePlane()">
+            <option>Select a plane</option>
+        </select>
+    </div>
+<!-- Map to add objects to-->
+<div id="TheMap">
+    
+</div>
+<!-- 
+
+<iframe id="TheMap" frameborder="0" style="border:0"
+src="https://www.google.com/maps/embed/v1/search?q=&key=AIzaSyC1MG4VO1wvHFuTAAgXAyfqF3iFpnqcDvU"></iframe>
+</div>
+-->
+<!-- https://maps.googleapis.com/maps/api/place/search/json?location=31.470656%2C74.412929&key=AIzaSyC1MG4VO1wvHFuTAAgXAyfqF3iFpnqcDvU&rankby=prominence&sensor=false -->
+<!-- https://www.google.com/maps/embed/v1/search?q=Terre+Haute&key=AIzaSyC1MG4VO1wvHFuTAAgXAyfqF3iFpnqcDvU -->
+<!--https://developers.google.com/maps/documentation/embed/guide#api_key-->
+<!-- place, search, view -->
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+//Handle Socket Requests
+var socket = io.connect();
+var LandingZones = [];
+var impacts = [];
+socket.on('connect', function () {
+    //console.log('connected'+socket);
+    //$scope.setName();
+    socket.emit('LandingZone',getQueryVariable2('q'));
+  
+});
+
+//Populate sidebar and map with returned data
+socket.on('data', function (msg) {
+    console.log('Data recieved on next line:')
+    console.log(msg);
+    for(var k=0;k<msg.length;k++){
+        LandingZones.push(msg[k]);
+    }
+    // getFinalData([msg]);
+});
+//Receive and place points on the Google Map
+socket.on('glocations', function (msg) {
+    // LandingZones.push(msg);
+    //getFinalData([msg]);
+    console.log(msg);
+    
+});
+var planes = [];
+socket.on('planes', function (msg) {
+    
+    // planes= msg;
+    console.log(msg);
+    populateDropdown('planes',msg);
+});
+socket.on('Impacts', function (msg) {
+    impacts = msg;
+    for(var i = 0; i < LandingZones.length; i++) {
+        var item = new LocationInfo(LandingZones[i], impacts[i]);
+    }
+        console.log('Next two lines: impacts, LandingZones');
+        console.log(impacts);
+        console.log(LandingZones);
+    // getListData(msg);
+});
+var viplist = [];
+var vipimpactlist = [];
+socket.on('VIPData', function (msg) {
+    viplist = msg;
+    console.log('vips:')
+    console.log(viplist);
+    calculateClosestPoint(viplist);
+});
+// socket.on('VIPImpactData', function (msg) {
+//     vipimpactlist = msg;
+//     console.log('vipimpacts')
+//     console.log(vipimpactlist);
+// });
+</script>
+</body>
+</html>
+
+
+
+
+<!-- get the query variable-->
+<SCRIPT LANGUAGE="javascript">
+
+
+
+
+
+function getQueryVariable2(variable) { 
+  var query = window.location.search.substring(1); 
+  var vars = query.split("&"); 
+
+  for (var i=0;i<vars.length;i++) { 
+    var pair = vars[i].split("="); 
+    if (pair[0] == variable) { 
+      
+      return pair[1].replace('+',' '); 
+    }
+  }
+}
+var map;
+geocoder = new google.maps.Geocoder();
+
+function initialize() {// Initialize the google map
+  //var myLatlng = new google.maps.LatLng(-25.363882,131.044922);
+  var mapOptions = {
+    zoom: 12,
+    //center: myLatlng
+  }
+  map = new google.maps.Map(document.getElementById('TheMap'), mapOptions);
+  geocoder.geocode( { 'address': getQueryVariable2('q')}, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+        console.log(results[0]);
+        map.setCenter(results[0].geometry.location);
+    } else {
+      alert('Geocode was not successful for the following reason: ' + status);
+    }
+  });
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+
+var itemCount = 0;
+var locations = [];
+var thePlanes = []; 
+
+function PlaneInfo(plane) {
+    this.plane = plane.Name;
+    this.capacity = plane.Capacity;
+    this.fuel = plane.FuelCapacity;
+    
+    
+    PlaneInfo.prototype.getCapacity = function() {
+        return this.capacity;
+    }
+    PlaneInfo.prototype.getFuel = function() {
+        return this.fuel;
+    }
+}
+
+/*
+Use this class to create the location data
+*/
+function LocationInfo(location, values) {
+    this.name;
+    this.economical = 0;
+    this.political = 0;
+    this.emotional = 0;
+    this.id = itemCount;
+    this.value = 0;
+    this.gpsx = 0;
+    this.gpxy = 0;
+    if(location == null) {
+        return;
+    }
+    if(location.Name == null) {
+        this.name = location;
+    } else {
+        this.name = location.Name;
+    }
+    if(values.Monetary == null) {
+        this.economical = 0;
+    } else {
+        this.economical = values.Monetary;
+    }
+    if(values.Political == null) {
+        this.political = 0;
+    } else {
+        this.political = values.Political;
+    }
+    if(values.Emotional == null) {
+        this.emotional = 0;
+    } else {
+        this.emotional = values.Emotional;
+        console.log(this.emotional + " is the emotional value");
+    }
+    if(location.GPSX != null) {
+        this.gpsx = location.GPSX;
+        console.log(this.gpsx);
+    }
+    if(location.GPSY != null) {
+        this.gpsy = location.GPSY;
+    }
+
+    LocationInfo.prototype.getRawValue = function() {
+        return this.economical + this.political + this.emotional;
+    }
+    
+    LocationInfo.prototype.getX = function() {
+        return parseFloat(this.gpsx);
+    }
+    LocationInfo.prototype.getY = function() {
+        return parseFloat(this.gpsy);
+    }
+    
+    LocationInfo.prototype.getPolitical = function() {
+        return this.political;
+    }
+    
+    LocationInfo.prototype.getEmotional = function() {
+        return this.emotional;
+    }
+    
+    LocationInfo.prototype.getMonetary = function() {
+        return this.economical;
+    }
+    
+    this.value = this.economical + this.political + this.emotional;
+    this.value = parseFloat(this.value);
+    displayItem(this.name);
+    displayInfo(this.economical, this.political, this.emotional, this.id);
+    locations[itemCount] = this;
+    createMarker(itemCount, this.economical + this.political + this.emotional, parseFloat(this.gpsx), parseFloat(this.gpsy));
+    itemCount++;
+}
+
+function calculateClosestPoint(locations) {
+    for(var i = 0; i < locations.length; i++) {
+        var distanceForLocation;
+        var locationIndex;
+        for(var k = 0; k < thePlanes.length; k++) {
+            
+            var x = Math.pow((locations[i].GPSX + thePlanes[k].GPSX), 2);
+            var y = Math.pow((locations[i].GPSX + thePlanes[k].GPSY), 2);
+            var distance = Math.sqrt(x + y);
+            if(distanceForLocation == null) {
+                distanceForLocation = distance;
+                locationIndex = k;
+            } else {
+                if(distanceForLocation > distance) {
+                    locationIndex = k;
+                    distanceForLocation = distance;
+                }
+            }
+        }
+        
+        thePlanes[locationIndex].Political += 4;
+        console.log("VIP at location " + locationIndex);
+        
+    }
+}
+
+function displayItem(item) {
+    var check = document.getElementById("container");
+    var divContainer;
+    if(check == null) {
+        divContainer = document.createElement("container");
+        divContainer.id = "container";
+        console.log("Does not exist");
+    } else {
+        divContainer = check;
+    }
+    // Make sure the proper elements exist for creation
+    
+    var test = document.getElementById("sidebar");
+    document.body.appendChild(divContainer);
+    
+     var newContainer = document.createElement("div");
+     var imbeddedContainer = document.createElement("div");
+     var header = document.createElement("h3");
+     var clickToExpand = document.createElement("p");
+     var separator = document.createElement("hr");
+        
+     newContainer.className = "location";
+     var temp = "list" + itemCount;
+     newContainer.setAttribute("onclick", "displayItems('"+temp+"')");
+     divContainer.appendChild(newContainer);
+    
+     item = item + " (" + itemCount +")";
+     header.appendChild(document.createTextNode(item));
+     header.setAttribute("align", "center");
+     newContainer.appendChild(header);
+        
+     clickToExpand.appendChild(document.createTextNode("Click to Expand"));
+     clickToExpand.setAttribute("align", "center");
+     newContainer.appendChild(clickToExpand);
+        
+     imbeddedContainer.className = "hide";
+     imbeddedContainer.id = ("list" + itemCount);
+     newContainer.appendChild(imbeddedContainer);
+        
+     separator.setAttribute("width", "90%");
+     separator.setAttribute("align", "center");
+     separator.setAttribute("color", "#000f0");
+        
+     newContainer.appendChild(separator);
+}
+
+/*
+    Display the info to the screen for the user
+*/
+function displayInfo(monetary, political, emotional, identifier) {
+
+    var id = document.getElementById("list" + itemCount);
+
+    var text = "Map Number: " + identifier + "<br>" + "Monetary: " + monetary + "<br>" + "Emotional: " + emotional + 
+    "<br>" + "Political: " + political;
+    var p = document.createElement("paragraph");
+    console.log(monetary + ' here');
+    p.innerHTML = text;
+    id.appendChild(p);
+}
+
+/*
+    Populate the dropdown menu for the airplanes
+*/ 
+function populateDropdown(menu, items) {
+    var id = document.getElementById(menu);
+    for(var i = 0; i < items.length; i++) {
+        var option = items[i].Name;
+        var temp = document.createElement("option");
+        temp.textContent = option;
+        temp.value = option;
+        thePlanes[i] = new PlaneInfo(items[i]);
+        id.appendChild(temp);
+    }
+} 
+
+function changePlane() {
+    var planeID = document.getElementById('planes');
+    var fuel = thePlanes[planeID.selectedIndex-1].getFuel() / 1000;
+    var capacity = thePlanes[planeID.selectedIndex-1].getCapacity() / 80;
+    // Make plane with fuel = 1000 and capacity = 80
+    clearMarkers();
+    
+    for(var i = 0; i < locations.length; i++) {
+        locations[i].value = parseFloat(locations[i].getPolitical()) + parseFloat(locations[i].getEmotional()) * parseFloat(capacity) + parseFloat(locations[i].getMonetary()) * parseFloat(fuel);
+        
+        console.log(locations[i].getPolitical())
+        console.log(locations[i].getEmotional())
+        console.log(capacity)
+        console.log(locations[i].getMonetary())
+        console.log(fuel)
+        createMarker(i, locations[i].value, locations[i].getX(), locations[i].getY());
+        console.log(locations[i].value);
+    }
+}
+
+
+function displayItems(id) {
+    var currentId = document.getElementById(id);
+// alert("The id given is: " + id + " And we found: " + currentId);
+    if(currentId.className == 'show') {
+        currentId.className = 'hide';
+      
+    } else {
+        currentId.className = 'show';
+    }
+}
+
+
+
+
+document.getElementById('landingfield').value = getQueryVariable2('q');
+//Rips the Query String from the search bar
+var image = 'img/mapsmarkerred.png';
+var imagegreen = 'https://chart.googleapis.com/chart?chst=d_bubble_icon_text_small&chld=ski|bb|'+getQueryVariable2('q')+'|FFFFFF|000000'
+
+
+
+
+
+markers = []
+function createMarker(index,level,gpslat,gpslong){
+    //Dynamic Markers:
+    //https://developers.google.com/chart/infographics/docs/dynamic_icons?csw=1#pins
+    var color;
+    if(level<=9)color = '|00FF00|000000';
+    if(level>=10 && level <=19)color = '|FFFF00|000000';
+    if(level>=20)color = '|FF0000|000000';
+    var marker = new google.maps.Marker({
+          map: map,
+          icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter_withshadow&chld='+index+color,
+          position: {"lat":gpslat,"lng":gpslong}
+      });
+    markers.push(marker);
+    console.log('created a marker at: ' + gpslat + ' and ' + gpslong);
+}
+
+function clearMarkers(){
+    //Clear all Markers on the map
+    for(var k=0;k<markers.length;k++){
+        markers[k].setMap(null);
+    }
+    markers = [];
+}
+</script>
+
+
+
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/angular.min.js"></script>

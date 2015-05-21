@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+         <link rel="stylesheet" type="text/css" href="data.css">
+    </head>
+<body>
+    
+    <script type="text/javascript">
+        function displayItems(id, topId) {
+            var currentId = document.getElementById(id);
+            var superId = document.getElementById(topId);
+            if(currentId.className == 'show') {
+                currentId.className = 'hide';
+                superId.setAttribute("style", "height:100px");
+            } else {
+                currentId.className = 'show';
+                superId.setAttribute("style", "height:300px");
+            }
+        }
+    </script>
+<div id="container1">
+    <div id="location1" onclick="displayItems('test1', 'location1')">
+        <h2>Terre Haute, IN</h2>
+        
+        <div class="hide" id=test1>
+            <p>Monetary Cost: </p>
+            <p>Other values: </p>
+        </div>
+    </div><div id="location2" onclick="displayItems('test2', 'location2')">
+        <h2>Yo momma's house, Pluto</h2>
+        <div class="hide" id=test2>
+            <p>Monetary Cost: </p>
+            <p>Other values: </p>
+        
+            </div>
+        </div>
+    </div>
+</body>
+</html>

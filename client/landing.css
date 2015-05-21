@@ -1,0 +1,68 @@
+#landingfield {
+    resize:horizontal;
+    width:78%;
+    /*display:inline-block;*/
+}
+
+#sendbutton {
+    width: 18%;
+}
+
+#container {
+    overflow-y: scroll;
+    max-height:94%;
+}
+
+#tfheader {
+    float:left;
+    resize: horizontal;
+    width:20%;
+}
+
+#menubars {
+    float:left;
+    height:30px;
+}
+
+#planes {
+    float: left;
+}
+
+#mapItems {
+    float:right;
+    width:80%;
+}
+
+#TheMap {
+    width: 100%;
+    height:97%;
+    margin-top: -10px;
+    /*float: bottom;*/
+}
+
+
+#container {
+    background-color: #0000ff;
+    width: 20%;
+    float:left;
+}
+
+
+
+.hide {
+    display: none;
+}
+
+.show {
+    height:75px;
+    margin-bottom: 2%;
+    display: block;
+}
+
+.location {
+    margin-top:-20px;
+    padding-bottom:20px;
+    background-color: #ffffff;
+    display: block;
+    width: 100%;
+}
